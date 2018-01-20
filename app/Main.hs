@@ -4,13 +4,13 @@ import Lib
 import IOUtils 
 import Control.Concurrent
 
-play :: Board -> IO ()
-play b = do
-  writeBoard "0" b
+play :: Field -> IO ()
+play f = do
+  writeField "0" f
   flush
   threadDelay 500000
-  writeBoard " " b
-  play $ next b
+  writeField " " f
+  play $ next f
 
 someFunc :: IO ()
 someFunc = do

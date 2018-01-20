@@ -1,10 +1,12 @@
 module Lib
   ( next
   , glider
-  , width
-  , height
+  , w
+  , h
+  , board
   , Board
-  , Pos 
+  , Pos
+  , Field 
   ) where
 
 import Control.Concurrent
@@ -14,22 +16,24 @@ type Pos = (Int, Int)
 
 type Board = [Pos]
 
+data Field = Field { board :: Board
+                   , w     :: Int
+                   , h     :: Int
+                   }
+
 isAlive :: Pos -> Board -> Bool
 isAlive pos board = elem pos board
 
-width :: Int
-width = 5
+glider :: Field 
+glider = Field { board  = [(4, 2), (2, 3), (4, 3), (3, 4), (4, 4)]
+               , w  = 10
+               , h = 10
+               }
 
-height :: Int
-height = 5
-
-glider :: Board
-glider = [(4, 2), (2, 3), (4, 3), (3, 4), (4, 4)]
-
-neighbours :: Pos -> [Pos]
-neighbours (x, y) =
+neighbours :: Int -> Int -> Pos -> [Pos]
+neighbours w h (x, y) =
   map
-    wrap
+    (wrap w h)
     [ (x - 1, y - 1)
     , (x, y - 1)
     , (x + 1, y - 1)
@@ -40,28 +44,31 @@ neighbours (x, y) =
     , (x + 1, y + 1)
     ]
 
-wrap :: Pos -> Pos
-wrap (x, y) = ((x - 1) `mod` width + 1, (y - 1) `mod` height + 1)
+wrap :: Int -> Int -> Pos -> Pos
+wrap w h (x, y) = ((x - 1) `mod` w + 1, (y - 1) `mod` h + 1)
 
-aliveNeighbours :: Board -> Pos -> Int
-aliveNeighbours board = length . filter (`isAlive` board) . neighbours
+aliveNeighbours :: Field -> Pos -> Int
+aliveNeighbours field = length . filter (`isAlive` (board field)) . (neighbours (w field) (h field))
 
-survivors :: Board -> [Pos]
-survivors board = [x | x <- board, aliveNeighbours board x `elem` [2, 3]]
+survivors :: Field -> [Pos]
+survivors field = [x | x <- board field, aliveNeighbours field x `elem` [2, 3]]
 
 rmDups :: Eq a => [a] -> [a]
 rmDups [] = []
 rmDups (x:xs) = x : (rmDups $ filter (/= x) xs)
 
-births :: Board -> [Pos]
-births board =
+births :: Field -> [Pos]
+births field =
   [ x
-  | x <- rmDups $ concat $ map neighbours board
-  , not (isAlive x board)
-  , aliveNeighbours board x == 3
+    | x <- rmDups $ concat $ map (neighbours (w field) (h field)) (board field)
+  , not (isAlive x $ board field)
+  , aliveNeighbours field x == 3
   ]
 
-next :: Board -> Board
-next board = rmDups $ concat [births board, survivors board]
+next :: Field -> Field 
+next field = Field{ board = rmDups $ concat [births field, survivors field]
+                  , w = w field
+                  , h = h field
+                  }
 
 

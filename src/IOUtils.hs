@@ -1,5 +1,5 @@
 module IOUtils
-  ( writeBoard
+  ( writeField
   , cls
   , flush
   ) where
@@ -27,6 +27,6 @@ seqn (x:xs) = do
   x
   seqn xs
 
-writeBoard :: String -> Board -> IO ()
-writeBoard s board =
-  seqn $ [writeAt pos s | pos <- board] ++ [goto (width + 1, height + 1)]
+writeField :: String -> Field -> IO ()
+writeField s f =
+  seqn $ [writeAt pos s | pos <- board f] ++ [goto (w f + 1, h f + 1)]
