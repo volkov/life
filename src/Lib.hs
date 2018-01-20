@@ -1,5 +1,10 @@
 module Lib
-  ( someFunc
+  ( next
+  , glider
+  , width
+  , height
+  , Board
+  , Pos 
   ) where
 
 import Control.Concurrent
@@ -8,27 +13,6 @@ import System.IO
 type Pos = (Int, Int)
 
 type Board = [Pos]
-
-goto :: Pos -> IO ()
-goto (x, y) = putStr ("\ESC[" ++ show y ++ ";" ++ show x ++ "H")
-
-writeAt :: Pos -> String -> IO ()
-writeAt pos text = do
-  goto pos
-  putStr text
-
-cls :: IO ()
-cls = putStr "\ESC[2J"
-
-seqn :: [IO ()] -> IO ()
-seqn [] = return ()
-seqn (x:xs) = do
-  x
-  seqn xs
-
-writeBoard :: String -> Board -> IO ()
-writeBoard s board =
-  seqn $ [writeAt pos s | pos <- board] ++ [goto (width + 1, height + 1)]
 
 isAlive :: Pos -> Board -> Bool
 isAlive pos board = elem pos board
@@ -80,15 +64,4 @@ births board =
 next :: Board -> Board
 next board = rmDups $ concat [births board, survivors board]
 
-play :: Board -> IO ()
-play b = do
-  writeBoard "0" b
-  hFlush stdout
-  threadDelay 500000
-  writeBoard " " b
-  play $ next b
 
-someFunc :: IO ()
-someFunc = do
-  cls
-  play glider
